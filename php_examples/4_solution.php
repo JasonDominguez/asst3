@@ -205,8 +205,8 @@ function VerifyUID($uid){
        'CS450','CS450A','CS450B','CS450C','CS450D');
    // Add the team members to the array by replacing PARTNER1 and PARTNER2 
    // with your team's Oracle LOGINS
-   $legal_names[] = 'PARTNER1'; // have to be in upper case
-   $legal_names[] = 'PARTNER2';
+   $legal_names[] = 'JDOMINGU'; // have to be in upper case
+   $legal_names[] = 'HBROW';
    if ( ! in_array($uid, $legal_names)){
      print <<<HTML
        <h1>ACCESS DENIED</h1>
