@@ -21,6 +21,7 @@ if (! isset($_POST['user_name'] , $_POST['password'] ,$_POST['sid'])
    require_once 'MDB2.php';
    $uid = strtoupper($_POST['user_name']);
    VerifyUID($uid);
+   echo nameTable();
    $con =& MakeConnection($uid);
    error_check($con,'MakeConnection');
 
@@ -56,61 +57,61 @@ if (! isset($_POST['user_name'] , $_POST['password'] ,$_POST['sid'])
 // 1. sent to standard output, or
 // 2. stored in program variables
 echo Approach();
-$query1 = Query1();
-echo ExplainQuery1($query1);
-$query2 = Query2();
-echo ExplainQuery2($query2);
-$query3 = Query3();
-echo ExplainQuery3($query3);
-$query4 = Query4();
-echo ExplainQuery4($query4);
-$bigquery = BigQuery($query1,$query2,$query3,$query4);
-echo ExplainBigQuery($bigquery);
-
+echo ExplainQueries();
 CleanTable();
+$query0=Query0();
 
-echo "<h4>Then run the query explained above</h4>
-   <p>The query is shown above so there is no need to display it again here</p>";
-$result =& $con->query($bigquery);
-error_check($result,'querying with bigquery');
-ShowTable($result,0);
-  # we do not free $result since we need the results for inserting below
-  # the 0 means do not free.
-  # but fetchRow() is an iterator that has run off the end of the result set
-  # so we have to set it back to the beginning:
-$result->seek(0);
-
-echo ExplainExtraQuery();
-
-echo  "<h4>Insert each tuple of the results of bigquery</h4>";
+echo "Retrieving the list of locations with <br><pre>$query0</pre> ";
+$outer = & $con->query($query0);
+error_check($outer, 'querying with query0');
   $insert_number = 1;
-while ($array = $result->fetchRow(MDB2_FETCHMODE_ASSOC)) {
-   # you can retrieve individual fields by name from the $array hash
-   # and put them in individual variables like this:
-   $lname =$array['lname']; 
-   # or use the method shown below, where they have to be enclosed
-   # in curly braces
-   #
-   # Here we use a separate query to get the num_dept information for each row
-   $query5 = Query5($lname);
-   $num_dept = $con->queryOne($query5);
-   error_check($num_dept,'retrieving num_dept');
-   #queryOne is a handy shortcut to return a single value from the DB
-   print "Ran <pre class='query'>$query5 </pre> and retrieved <b> $num_dept</b> for num_dept.<br>";
 
-   InsertRow($lname,
-      $array['num_proj'],
-      $array['num_emp'],
-      $num_dept,
-      $array['num_work'],
-      $array['tot_hours'],
-      $array['tot_cost']
+
+while( is_array(   $department = $outer->fetchRow(MDB2_FETCHMODE_ASSOC))){
+   $dep = $department['dname'];
+   echo "<h3>Retrieving results for department $dep</h3>";
+//    $query1=Query1($loc);
+//    $query2=Query2($loc);
+//    $query3=Query3($loc);
+//    $query4=Query4($loc);
+//    $query5=Query5($loc);
+//    echo ShortExp('num_emp',$query1);
+//    $num_emp = $con->queryOne($query1);
+//    error_check($num_emp,"num_emp for $loc");
+//    echo "Retrieved $num_emp<br>";
+//    echo ShortExp('num_proj',$query2);
+//    $num_proj = $con->queryOne($query2);
+//    error_check($num_proj,"num_proj for $loc");
+//    echo "Retrieved $num_proj<br>";
+//    echo ShortExp('num_work',$query3);
+//    $num_work = $con->queryOne($query3);
+//    error_check($num_work,"num_work for $loc");
+//    echo "Retrieved $num_work<br>";
+//    echo ShortExp('tot_hours and tot_cost',$query4);
+//    $tot2 = $con->queryRow($query4);
+//    error_check($tot2,"tot_hours and tot_cost for $loc");
+//    $tot_hours = $tot2[0];
+//    $tot_cost = $tot2[1];
+//    echo "Retrieved $tot_hours and $tot_cost<br>";
+//    echo ShortExp('num_dept',$query5);
+//    $num_dept = $con->queryOne($query5);
+//    error_check($num_dept,"num_dept for $loc");
+//    echo "Retrieved $num_dept<br>";
+//    echo "<h4>Inserting for $loc</h4>";
+   InsertRow($dep
+    //   $num_proj,
+    //   $num_emp,
+    //   $num_dept,
+    //   $num_work,
+    //   $tot_hours,
+    //   $tot_cost
           );
 
    $insert_number++;
 }
+
    # important to free memory used by $result
-$result->free();
+$outer->free();
 DisplayResults();
    $con->disconnect();
 
@@ -152,6 +153,19 @@ function LoginForm(){
     <input type='submit' value='SUBMIT INFO'>
     </form>
 _HTML_;
+}
+function nameTable(){
+    return <<<EXPLAIN
+       <table border="1">
+       <tr><td colspan="2">This page is the solely the work of</td></tr>
+       <tr><td>jdomingu</td><td>hbrow</td></tr>
+       <tr><td>Jason Dominguez</td><td>Hanna Brown</td></tr>
+       <tr><td colspan="2">We have not recieved aid from anyone<br>
+       else in this assignment.  We have not given <br>
+          anyone else aid in the 
+       assignment</td></tr>
+       </table>
+EXPLAIN;
 }
 
 function VerifyUID($uid){
@@ -214,228 +228,238 @@ function MakeConnection($uid){
 function Approach(){
 return <<<HTML
 <h3>Overview</h3>
-<div class='problem'>The approach taken here is to calculate the columns for 
-most of the answer in separate SQL queries that are to be collected together in 
-a WITH clause at the beginning of one select statement.  The queries are all 
-joined together on lname to produce the final result.  One difficult part is 
-collected on a per-row basis. This is to show that you are not required to use 
-the WITH approach.
+<div class='problem'>
+The approach taken here is the Big Loop approach.  An outer loop retrieves a list
+of all the departments.  Then for each department the values to be reported for that department
+are calculated. These values are then inserted, and we proceed to the next department.
 </div>
 HTML;
 }
 function CleanTable(){
-   # builds the procedure call to clean the table, executes the query,
-   # checks the result and explains what is going on.
-   global $uid,$con;
-   print "<h3>First clean proj_loc_summary table</h3>";
-   // $query & $result are automatically local to CleanTable because not global
-   $query = "
-   BEGIN 
-      cs450.clean_proj_loc_summary('$uid'); 
-   END;
-   ";
-   $query=preg_replace('/\r/','',$query);
-   print("cleaning with <pre class='query'>$query</pre>");
-   $result =& $con->query($query);
-   error_check($result,'cleaning');
-   $result->free();
+    # builds the procedure call to clean the table, executes the query,
+    # checks the result and explains what is going on.
+    global $uid,$con;
+    print "<h3>First clean proj_dept_summary table</h3>";
+    // $query & $result are automatically local to CleanTable because not global
+    $query = "
+    BEGIN 
+        cs450.clean_dept_summary('$uid'); 
+    END;
+    ";
+    $query=preg_replace('/\r/','',$query);
+    print("cleaning with <pre class='query'>$query</pre>");
+    $result =& $con->query($query);
+    error_check($result,'cleaning');
+    $result->free();
 }
-function Query1(){
-   return <<<QUERY
-   select plocation lname, count(fname) num_emp
-   from (select distinct plocation from project)
-   left join employee on address like '%'||plocation||'%'
-   group by plocation
-   order by lname
+function Query0(){
+    return  <<<QUERY
+    select distinct dname from department
+QUERY;
+}
+function ExplainQuery0($query0){
+    return <<<HTML
+    <h3>We start with an Outer Loop</h3>
+    <pre class="query">$query0</pre>
+    <div class="indent"><b>Explanation</b>:
+    The result set of all the project locations will be the outer loop for
+    the Big Loop approach.  We will get the correct parameters for each of the
+    parameters for the cs450.ins_proj_loc_summary() procedure for this particular
+    location, and then do the insert.
+    </div>
+HTML;
+}
+function Query1($loc){
+    return <<<QUERY
+    select count(fname) num_emp
+    from employee 
+    where  address like '%'||'$loc'||'%'
 QUERY;
 }
 function ExplainQuery1($query1){
-   return <<<HTML
-   <h3>Columns: lname and num_emp--query1</h3>
-   <pre class="query">$query1</pre>
-   <div class="indent"><b>Explanation</b>:
-   <ul><li><u>select distinct plocation</u>: ensures that each location is only used once.
-   Otherwise the same employee would be counted for each different plocation</li>
-   <li><u>left join:</u> ensures that each plocation appears in the result even if no
-   employee lives there</li>
-   <li><u>count(fname):</u> count does not count nulls so plocations with no employees will
-            show up with 0s</li>
-   </ul></div>
+    return <<<HTML
+    <h3>Column: num_emp--query1</h3>
+    <pre class="query">$query1</pre>
+    <div class="indent"><b>Explanation</b>:
+    <ul><li>Once the location is specified, counts the number of employees who live there</li>
+    <li><u>count(fname):</u> count will return 0 if there are no such employees</li>
+    </ul></div>
 HTML;
 }
-function Query2(){
-   return<<<QUERY
-   select plocation lname, count(*) num_proj
-   from project
-   group by plocation
-   order by lname
+function ShortExp($colname, $query){
+    return <<<HTML
+    <p>Retrieving $colname with <pre class="query">$query</pre></p>
+HTML;
+}
+function Query2($loc){
+    return<<<QUERY
+    select count(*) num_proj
+    from project
+    where plocation = '$loc'
 QUERY;
 }
 function ExplainQuery2($query2){
-   return <<<HTML
-   <h3>Columns: lname and num_proj--query2</h3>
-   <pre class="query">$query2</pre>
-   <div class="indent"><b>Explanation</b>:
-   <p>Simple count of tuples per project location</p></div>
+    return <<<HTML
+    <h3>Column: num_proj--query2</h3>
+    <pre class="query">$query2</pre>
+    <div class="indent"><b>Explanation</b>:
+    <p>Simple count of tuples per project location</p></div>
 HTML;
 }
-function Query3(){
-   return <<<QUERY
-   select plocation lname, count(distinct ssn) num_work
-   from (employee join works_on on ssn=essn) 
-      right join project on pno=pnumber
-   group by plocation
-   order by lname
+function Query3($loc){
+    return <<<QUERY
+    select count(distinct ssn) num_work
+    from (employee join works_on on ssn=essn) 
+        join project on pno=pnumber
+    where plocation = '$loc'
 QUERY;
 }
 function ExplainQuery3($query3){
-   return <<<HTML
-   <h3>Columns: lname and num_work--query3</h3>
-   <pre class="query">$query3</pre>
-   <div class="indent"><b>Explanation</b>:
-   <ul><li><u>right join:</u> ensures each project appears, even if no one works on it</li>
-   <li><u>count(distinct ssn):</u> does two things-- 
-          counting ssn means nulls will not be counted
-          and projects with no workers will have a count of 0; 
-          <u>distinct</u> means workers will only be counted once.</li>
-   </ul></div>
+    return <<<HTML
+    <h3>Column: num_work--query3</h3>
+    <pre class="query">$query3</pre>
+    <div class="indent"><b>Explanation</b>:
+    <p>Number of employees who work at this location.</p>
+    <ul>   <li><u>count(distinct ssn):</u>
+            projects with no workers will have a count of 0; 
+            <u>distinct</u> means workers will only be counted once.</li>
+    </ul></div>
 HTML;
 }
-function Query4(){
-   return <<<QUERY
-   select plocation lname, nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
-   from project left join (works_on join employee on essn=ssn) on pnumber = pno
-   group by plocation
-   order by lname
+function Query4($loc){
+    return <<<QUERY
+    select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
+    from project join (works_on join employee on essn=ssn) on pnumber = pno
+    where plocation = '$loc'
 QUERY;
 }
 function ExplainQuery4($query4){
-   return <<<HTML
-   <h3>Columns: lname, tot_hours, and tot_cost-- query4</h3>
-   <pre class="query">$query4</pre>
-   <div class="indent"><b>Explanation</b>:
-   <ul><li><u>left join:</u>ensures each project appears, even if no one works on it</li>
-   <li><u>sum(hours*salary/2000)</u> calculates this value for each tuple in the join
-   on the from line so it is correct for each employee.</li>
-   </ul></div>
+    return <<<HTML
+    <h3>Column: tot_hours, and tot_cost-- query4</h3>
+    <pre class="query">$query4</pre>
+    <div class="indent"><b>Explanation</b>:
+    <ul>
+    <li><u>sum(hours*salary/2000)</u> calculates this value for each tuple in the join
+    on the from line so it is correct for each employee.</li>
+    <li>NVL: if there is no employee who works on the project, 
+    ensures that zeros are returned rather than nulls</li>
+    </ul></div>
 HTML;
 }
-
-function BigQuery($query1,$query2,$query3,$query4){
-   return <<<QUERY
-   with 
-      query1 as 
-   ($query1),
-      query2 as 
-   ($query2),
-      query3 as
-   ($query3),
-      query4 as 
-   ($query4)            /* main query starts here */
-   select query1.lname, num_proj, num_emp,  num_work, tot_hours, tot_cost
-   from query1, query2, query3, query4
-   where query1.lname = query2.lname
-   and   query2.lname = query3.lname
-   and   query3.lname = query4.lname
-QUERY;
-}
-function ExplainBigQuery($bigquery){
-   return <<<HTML
-   <h3>Final Query--bigquery</h3>
-   <pre class="query">$bigquery</pre>
-   <div class="indent">This just unites all four queries using the <u>with</u> construct</div>
-HTML;
-}
-function ExplainExtraQuery(){
-   return <<<QUERY
-   <p>This gets all the information we need except <b>num_dept</b> which we will
-   calculate for each row using the following query:</p>
-   <pre class="query">
-   select count(distinct dnumber) num_dept
-   from dept_locations
-   where dlocation = 'XXXX'
-   </pre>
-
-   <p>with the current plocation substituted for XXXX.</p>
-QUERY;
-}
-function Query5($lname){
-   return <<<QUERY5
-      select count(distinct dnumber) num_dept
-      from dept_locations
-      where dlocation = '$lname'
+function Query5($loc){
+    return <<<QUERY5
+        select count(distinct dnumber) num_dept
+        from dept_locations
+        where dlocation = '$loc'
 QUERY5;
 }
-function InsertRow($lname,$num_proj,$num_emp,$num_dept,$num_work,$tot_hours,$tot_cost){
-   global $uid,$con,$insert_number;
-   $query=<<<QUERY
-   BEGIN
-      cs450.ins_proj_loc_summary(
-            '$lname',  -- proj location
-            $num_proj, -- number of projects
-            $num_emp,  -- number of employees living here
-            $num_dept, -- number of depts with offices here
-            $num_work, -- number of emps working on projects here
-            $tot_hours, -- their total hours
-            $tot_cost,  -- their total cost
+
+function ExplainQuery5($query5){
+    return <<<HTML
+    <h3>Column: num_dept -- query5</h3>
+    <pre class="query">$query5
+    </pre>
+    <div class="indent"><b>Explanation</b>:
+    Simple count of the number of different departments at a given location.
+    </div>
+HTML;
+}
+function ExplainQueries(){
+$query0 = Query0();
+echo ExplainQuery0($query0);
+// $query1 = Query1('XXXXXX');
+// echo ExplainQuery1($query1);
+// $query2 = Query2('XXXXXX');
+// echo ExplainQuery2($query2);
+// $query3 = Query3('XXXXXX');
+// echo ExplainQuery3($query3);
+// $query4 = Query4('XXXXXX');
+// echo ExplainQuery4($query4);
+// $query5 = Query5('XXXXXX');
+// echo ExplainQuery5($query5);
+}
+
+// function InsertRow($lname,$num_proj,$num_emp,$num_dept,$num_work,$tot_hours,$tot_cost){
+//     global $uid,$con,$insert_number;
+//     $query=<<<QUERY
+//     BEGIN
+//         cs450.ins_dept_summary(
+//             '$lname',  -- proj location
+//             $num_proj, -- number of projects
+//             $num_emp,  -- number of employees living here
+//             $num_dept, -- number of depts with offices here
+//             $num_work, -- number of emps working on projects here
+//             $tot_hours, -- their total hours
+//             $tot_cost,  -- their total cost
+//             '$uid',     -- me
+//             $insert_number -- row number
+//             );
+//     END;
+// QUERY;
+function InsertRow($dep){
+    global $uid,$con,$insert_number;
+    $query=<<<QUERY
+    BEGIN
+        cs450.ins_dept_summary(
+            '$dep',  -- department name
+            '5',  -- DNUMBER
+            'DEPT',  -- EMP_TYPE
+            'NONDEPT',  -- PROJ_TYPE
+            '6',  -- NUM_EMPS
+            '40',  -- HOURS
+            '100', -- COST
             '$uid',     -- me
             $insert_number -- row number
             );
-   END;
+    END;
 QUERY;
-   # if you write your code on windows rather than UNIX you will need to add this next line
-   # to avoid an error.  
-   $query=preg_replace('/\r/','',$query);
-   # The error occurs because Windows ends lines with two characters
-   # ascii 13 and 10 but unix only uses 10.  The PL/SQL process gets upset when it finds
-   # the carriage returns (ascii 13) in the code for the procedure calls (but in the
-   # SQL there is no problem).
 
-   print("Inserting with <pre class='query'>$query</pre>");
-   $result =& $con->query($query);
-   error_check($result,'procedure call');
-   $result->free();
-   # important to free memory used by $result
+    print("Inserting with <pre class='query'>$query</pre>");
+    $result =& $con->query($query);
+    error_check($result,'procedure call');
+    $result->free();
+    # important to free memory used by $result
 }
 function DisplayResults(){
-   global $con, $uid;
-   $query="select * from TABLE(cs450.v_proj_loc_summary('$uid'))";
-   print <<<_HTML_
-      <h4>Checking results of Database Procedure Inserts</h4>
-      using query <pre class='query'>$query</pre>
+    global $con, $uid;
+    $query="select * from TABLE(cs450.v_dept_summary('$uid'))";
+    print <<<_HTML_
+        <h4>Checking results of Database Procedure Inserts</h4>
+        using query <pre class='query'>$query</pre>
 _HTML_;
-   $result =& $con->query($query);
-   error_check($result,'querying v_proj_loc_summary');
-   ShowTable($result, 1); # 1 means free $result
+    $result =& $con->query($query);
+    error_check($result,'querying v_dept_summary');
+    ShowTable($result, 1); # 1 means free $result
 }
 function ShowTable($result,$free = 0){
-  #changed from last version.  do not always want to free $result
-  #$free is assumed to be ==0 unless stated otherwise 
-   echo "<br><table border='1'>";
-   $header=0;
-   while ($array = $result->fetchRow(MDB2_FETCHMODE_ASSOC)) {
-      if (!$header){
-         $header=1;
-         echo "<TR>";
+    #changed from last version.  do not always want to free $result
+    #$free is assumed to be ==0 unless stated otherwise 
+    echo "<br><table border='1'>";
+    $header=0;
+    while ($array = $result->fetchRow(MDB2_FETCHMODE_ASSOC)) {
+        if (!$header){
+            $header=1;
+            echo "<TR>";
             foreach($array as $key => $field){
-               echo("<th>$key</th>");
+                echo("<th>$key</th>");
             }
-         echo "</TR>";
-      }
-      echo "<tr>";
-         foreach ($array as  $field){
+            echo "</TR>";
+        }
+        echo "<tr>";
+            foreach ($array as  $field){
             echo("<td>$field</td>");
-         }
-      echo "</tr>";
-   }
-   # important to free memory used by $result
-   if ($free) { $result->free();}
-   # this version does automatically not free because of reuse of $result
+            }
+        echo "</tr>";
+    }
+    # important to free memory used by $result
+    if ($free) { $result->free();}
+    # this version does automatically not free because of reuse of $result
 
-   echo "</table>";
+    echo "</table>";
 }
 ?>
 
 </body>
 </html>
+    
 
