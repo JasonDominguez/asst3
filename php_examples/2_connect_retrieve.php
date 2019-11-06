@@ -1,14 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <!-- vim:set filetype=php: -->
-<?php
-// DO NOT INCLUDE THIS SECTION OF PHP IN YOUR CODE
-// it is used to show the syntax highlighted version
-// YOU DO NOT HAVE 'highlight.php' AVAILABLE.
-if (isset($_GET['code'])) { 
-   require_once('highlight.php');
-   die(highlight_file(__FILE__, 1)); }
-?>
-
 
 <html>
 <head>
