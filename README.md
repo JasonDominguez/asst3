@@ -1,5 +1,5 @@
 # asst3
-Assingment page: https://cs450.cs.odu.edu/~cs450/450/FTP/Assignments/plsql-assign/plsqlassug_gr.php
+Assignment page: https://cs450.cs.odu.edu/~cs450/450/FTP/Assignments/plsql-assign/plsqlassug_gr.php
 
 Report requirements: https://cs450.cs.odu.edu/~cs450/450/FTP/Assignments/plsql-assign/report-ug.html
 
