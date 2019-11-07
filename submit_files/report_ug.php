@@ -61,59 +61,49 @@ echo ExplainQueries();
 CleanTable();
 $query0=Query0();
 
-echo "Retrieving the list of locations with <br><pre>$query0</pre> ";
+echo "Retrieving the list of locations with <br><pre class='query'>$query0</pre> ";
 $outer = & $con->query($query0);
 error_check($outer, 'querying with query0');
-  $insert_number = 1;
+$insert_number = 1;
 
 
 while( is_array(   $department = $outer->fetchRow(MDB2_FETCHMODE_ASSOC))){
    $dep = $department['dname'];
+   $dnum = $department['dnumber'];
    echo "<h3>Retrieving results for department $dep</h3>";
-//    $query1=Query1($loc);
-//    $query2=Query2($loc);
-//    $query3=Query3($loc);
-//    $query4=Query4($loc);
-//    $query5=Query5($loc);
-//    echo ShortExp('num_emp',$query1);
-//    $num_emp = $con->queryOne($query1);
-//    error_check($num_emp,"num_emp for $loc");
-//    echo "Retrieved $num_emp<br>";
-//    echo ShortExp('num_proj',$query2);
-//    $num_proj = $con->queryOne($query2);
-//    error_check($num_proj,"num_proj for $loc");
-//    echo "Retrieved $num_proj<br>";
-//    echo ShortExp('num_work',$query3);
-//    $num_work = $con->queryOne($query3);
-//    error_check($num_work,"num_work for $loc");
-//    echo "Retrieved $num_work<br>";
-//    echo ShortExp('tot_hours and tot_cost',$query4);
-//    $tot2 = $con->queryRow($query4);
-//    error_check($tot2,"tot_hours and tot_cost for $loc");
-//    $tot_hours = $tot2[0];
-//    $tot_cost = $tot2[1];
-//    echo "Retrieved $tot_hours and $tot_cost<br>";
-//    echo ShortExp('num_dept',$query5);
-//    $num_dept = $con->queryOne($query5);
-//    error_check($num_dept,"num_dept for $loc");
-//    echo "Retrieved $num_dept<br>";
-//    echo "<h4>Inserting for $loc</h4>";
-   InsertRow($dep
-    //   $num_proj,
-    //   $num_emp,
-    //   $num_dept,
-    //   $num_work,
-    //   $tot_hours,
-    //   $tot_cost
-          );
 
+   $query1 = Query1($dep);
+   $deptDept = & $con->query($query1);
+   error_check($deptDept, 'querying with query1');
+   $row1 = $deptDept->fetchRow(MDB2_FETCHMODE_ASSOC);
+   echo ShortExp($row1, $query1);
+   InsertRow($dep, $dnum, 'DEPT', 'DEPT', $row1['num_emps'], $row1['hours'], $row1['cost']);
+   $deptDept->free();
+   $insert_number++;
+
+   $query2 = Query2($dep);
+   $deptNonDept = & $con->query($query2);
+   error_check($deptNonDept, 'querying with query2');
+   $row2 = $deptNonDept->fetchRow(MDB2_FETCHMODE_ASSOC);
+   echo ShortExp($row2, $query2);
+   InsertRow($dep, $dnum, 'DEPT', 'NONDEPT', $row2['num_emps'], $row2['hours'], $row2['cost']);
+   $deptNonDept->free();
+   $insert_number++;
+
+   $query3 = Query3($dep);
+   $nonDeptDept = & $con->query($query3);
+   error_check($nonDeptDept, 'querying with query3');
+   $row3 = $nonDeptDept->fetchRow(MDB2_FETCHMODE_ASSOC);
+   echo ShortExp($row3, $query3);
+   InsertRow($dep, $dnum, 'NONDEPT', 'DEPT', $row3['num_emps'], $row3['hours'], $row3['cost']);
+   $nonDeptDept->free();
    $insert_number++;
 }
 
-   # important to free memory used by $result
+# important to free memory used by $result
 $outer->free();
 DisplayResults();
-   $con->disconnect();
+$con->disconnect();
 
 }
 ?>
@@ -135,7 +125,7 @@ function TopMatter(){
 
    </style>
 
-   <title>PHP Example: #4</title>
+   <title>Assignment 3</title>
    </head>
    <body>
 TOP;
@@ -230,8 +220,10 @@ return <<<HTML
 <h3>Overview</h3>
 <div class='problem'>
 The approach taken here is the Big Loop approach.  An outer loop retrieves a list
-of all the departments.  Then for each department the values to be reported for that department
-are calculated. These values are then inserted, and we proceed to the next department.
+of all the departments.  For each department three queries are made. One detailing department
+employees working on department projects, one for department employees working on non-department projects,
+and one for non-department employees working on department projects. The resulting data from each
+query is inserted along with corresponding department information.
 </div>
 HTML;
 }
@@ -254,160 +246,138 @@ function CleanTable(){
 }
 function Query0(){
     return  <<<QUERY
-    select distinct dname from department
+    select distinct dname, dnumber from department
 QUERY;
 }
 function ExplainQuery0($query0){
     return <<<HTML
-    <h3>We start with an Outer Loop</h3>
+    <h3>Query0: We start with an Outer Loop</h3>
     <pre class="query">$query0</pre>
     <div class="indent"><b>Explanation</b>:
-    The result set of all the project locations will be the outer loop for
-    the Big Loop approach.  We will get the correct parameters for each of the
-    parameters for the cs450.ins_proj_loc_summary() procedure for this particular
-    location, and then do the insert.
+    The resulting table of department names and their corresponding department numbers 
+    will be used as the outer loop in the Big Loop approach.
     </div>
 HTML;
 }
-function Query1($loc){
+function Query1($dep){
     return <<<QUERY
-    select count(fname) num_emp
-    from employee 
-    where  address like '%'||'$loc'||'%'
+    with
+        query as
+    (select ssn, sum(hours) as sum_hours, salary
+    from EMPLOYEE, DEPARTMENT, PROJECT, WORKS_ON
+    where department.dname = '$dep'
+    and department.dnumber = employee.dno
+    and employee.ssn = works_on.essn
+    and works_on.pno = project.pnumber
+    and project.dnum = department.dnumber
+    group by ssn, salary)
+    select count(ssn) num_emps, nvl(sum(sum_hours),0) hours, nvl(sum(sum_hours*salary/2000),0) cost
+    from query
 QUERY;
 }
 function ExplainQuery1($query1){
     return <<<HTML
-    <h3>Column: num_emp--query1</h3>
+    <h3>Query1: The department name is used to find department employees working on department projects</h3>
     <pre class="query">$query1</pre>
     <div class="indent"><b>Explanation</b>:
-    <ul><li>Once the location is specified, counts the number of employees who live there</li>
-    <li><u>count(fname):</u> count will return 0 if there are no such employees</li>
+    <ul>
+        <li>Queries a selection of all department employees assigned to any projects belonging to the department</li>
+        <li>The number of employees in this selection is counted as num_emps.</li>
+        <li>The total number of hours department employees worked on departement projects is summed as hours.</li>
+        <li>The hours each department employee worked on departement projects is summed, multiplied by their salary and divided by 2000.
+            This value is summed with the other queried employees as cost.</li>
     </ul></div>
 HTML;
 }
-function ShortExp($colname, $query){
-    return <<<HTML
-    <p>Retrieving $colname with <pre class="query">$query</pre></p>
-HTML;
-}
-function Query2($loc){
+function Query2($dep){
     return<<<QUERY
-    select count(*) num_proj
-    from project
-    where plocation = '$loc'
+    with
+        query as
+    (select ssn, sum(hours) as sum_hours, salary
+    from EMPLOYEE, DEPARTMENT, PROJECT, WORKS_ON
+    where department.dname = '$dep'
+    and department.dnumber = employee.dno
+    and employee.ssn = works_on.essn
+    and works_on.pno = project.pnumber
+    and project.dnum <> department.dnumber
+    group by ssn, salary)
+    select count(ssn) num_emps, nvl(sum(sum_hours),0) hours, nvl(sum(sum_hours*salary/2000),0) cost
+    from query
 QUERY;
 }
 function ExplainQuery2($query2){
     return <<<HTML
-    <h3>Column: num_proj--query2</h3>
+    <h3>Query2: The department name is used to find department employees working on non-department projects</h3>
     <pre class="query">$query2</pre>
     <div class="indent"><b>Explanation</b>:
-    <p>Simple count of tuples per project location</p></div>
+    <ul>
+        <li>Queries a selection of all department employees assigned to any projects belonging to other department</li>
+        <li>The number of employees in this selection is counted as num_emps.</li>
+        <li>The total number of hours department employees worked on non-departement projects is summed as hours.</li>
+        <li>The hours each department employee worked on non-departement projects is summed, multiplied by their salary and divided by 2000. 
+            This value is summed with the other queried employees as cost.</li>
+    </ul></div>
 HTML;
 }
-function Query3($loc){
+function Query3($dep){
     return <<<QUERY
-    select count(distinct ssn) num_work
-    from (employee join works_on on ssn=essn) 
-        join project on pno=pnumber
-    where plocation = '$loc'
+    with
+        query as
+    (select ssn, sum(hours) as sum_hours, salary
+    from EMPLOYEE, DEPARTMENT, PROJECT, WORKS_ON
+    where department.dname = '$dep'
+    and department.dnumber <> employee.dno
+    and employee.ssn = works_on.essn
+    and works_on.pno = project.pnumber
+    and project.dnum = department.dnumber
+    group by ssn, salary)
+    select count(ssn) num_emps, nvl(sum(sum_hours),0) hours, nvl(sum(sum_hours*salary/2000),0) cost
+    from query
 QUERY;
 }
 function ExplainQuery3($query3){
     return <<<HTML
-    <h3>Column: num_work--query3</h3>
+    <h3>Query3: The department name is used to find non-department employees working a on department projects</h3>
     <pre class="query">$query3</pre>
     <div class="indent"><b>Explanation</b>:
-    <p>Number of employees who work at this location.</p>
-    <ul>   <li><u>count(distinct ssn):</u>
-            projects with no workers will have a count of 0; 
-            <u>distinct</u> means workers will only be counted once.</li>
-    </ul></div>
-HTML;
-}
-function Query4($loc){
-    return <<<QUERY
-    select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
-    from project join (works_on join employee on essn=ssn) on pnumber = pno
-    where plocation = '$loc'
-QUERY;
-}
-function ExplainQuery4($query4){
-    return <<<HTML
-    <h3>Column: tot_hours, and tot_cost-- query4</h3>
-    <pre class="query">$query4</pre>
-    <div class="indent"><b>Explanation</b>:
     <ul>
-    <li><u>sum(hours*salary/2000)</u> calculates this value for each tuple in the join
-    on the from line so it is correct for each employee.</li>
-    <li>NVL: if there is no employee who works on the project, 
-    ensures that zeros are returned rather than nulls</li>
+        <li>Queries a selection of all non-department employees assigned to any projects belonging to the department.</li>
+        <li>The number of employees in this selection is counted as num_emps.</li>
+        <li>The total number of hours non-department employees worked on departement projects is summed as hours.</li>
+        <li>The hours each non-department employee worked on the departement's projects is summed, multiplied by their salary and divided by 2000. 
+            This value is summed with the other queried employees as cost.</li>
     </ul></div>
 HTML;
 }
-function Query5($loc){
-    return <<<QUERY5
-        select count(distinct dnumber) num_dept
-        from dept_locations
-        where dlocation = '$loc'
-QUERY5;
-}
-
-function ExplainQuery5($query5){
+function ShortExp($row, $query){
     return <<<HTML
-    <h3>Column: num_dept -- query5</h3>
-    <pre class="query">$query5
-    </pre>
-    <div class="indent"><b>Explanation</b>:
-    Simple count of the number of different departments at a given location.
-    </div>
+    <p>Retrieving NUM_EMPS, HOURS, COST with <pre class="query">$query</pre></p>
+    <p>Retrieved NUM_EMPS: $row[num_emps], HOURS: $row[hours], COST: $row[cost]</p>
 HTML;
 }
 function ExplainQueries(){
 $query0 = Query0();
 echo ExplainQuery0($query0);
-// $query1 = Query1('XXXXXX');
-// echo ExplainQuery1($query1);
-// $query2 = Query2('XXXXXX');
-// echo ExplainQuery2($query2);
-// $query3 = Query3('XXXXXX');
-// echo ExplainQuery3($query3);
-// $query4 = Query4('XXXXXX');
-// echo ExplainQuery4($query4);
-// $query5 = Query5('XXXXXX');
-// echo ExplainQuery5($query5);
+$query1 = Query1('XXXXXX');
+echo ExplainQuery1($query1);
+$query2 = Query2('XXXXXX');
+echo ExplainQuery2($query2);
+$query3 = Query3('XXXXXX');
+echo ExplainQuery3($query3);
 }
 
-// function InsertRow($lname,$num_proj,$num_emp,$num_dept,$num_work,$tot_hours,$tot_cost){
-//     global $uid,$con,$insert_number;
-//     $query=<<<QUERY
-//     BEGIN
-//         cs450.ins_dept_summary(
-//             '$lname',  -- proj location
-//             $num_proj, -- number of projects
-//             $num_emp,  -- number of employees living here
-//             $num_dept, -- number of depts with offices here
-//             $num_work, -- number of emps working on projects here
-//             $tot_hours, -- their total hours
-//             $tot_cost,  -- their total cost
-//             '$uid',     -- me
-//             $insert_number -- row number
-//             );
-//     END;
-// QUERY;
-function InsertRow($dep){
+function InsertRow($dep, $dnum, $emp_type, $proj_type, $num_emps, $hours, $cost){
     global $uid,$con,$insert_number;
     $query=<<<QUERY
     BEGIN
         cs450.ins_dept_summary(
             '$dep',  -- department name
-            '5',  -- DNUMBER
-            'DEPT',  -- EMP_TYPE
-            'NONDEPT',  -- PROJ_TYPE
-            '6',  -- NUM_EMPS
-            '40',  -- HOURS
-            '100', -- COST
+            $dnum,  -- department number
+            '$emp_type',  -- type of employee (DEPT or NONDEPT)
+            '$proj_type',  -- type of project (DEPT or NONDEPT)
+            $num_emps,  -- number of $emp_type employees working on $proj_type projects
+            $hours,  -- total number of hours
+            $cost, -- total cost
             '$uid',     -- me
             $insert_number -- row number
             );
