@@ -9,3 +9,5 @@ PHP examples from: https://cs450.cs.odu.edu/~cs450/450/FTP/Assignments/plsql-ass
 
 Finished php page: https://www.cs.odu.edu/~jdomingu/cs450/report_ug.php
 
+Company Database Diagram: https://cs450.cs.odu.edu/~cs450/450/common/company_database.pdf
+
