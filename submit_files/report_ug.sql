@@ -8,7 +8,6 @@ CREATE OR REPLACE PROCEDURE report_ug(
     v_cost dept_summary.cost%TYPE, 
     v_user_name dept_summary.user_name%TYPE, 
     v_insert_number dept_summary.insert_number%TYPE);
- AS
        
        CURSOR dname IS
        select distinct dname
@@ -20,7 +19,7 @@ CREATE OR REPLACE PROCEDURE report_ug(
     
        CURSOR num_emps IS
        select count(distinct ssn) num_emps
-       from (employee join department on dno=dnumber) 
+       from employee join department on dno=dnumber 
        where dname = v_dep_info.dname;      
 
        CURSOR emp_totals IS
