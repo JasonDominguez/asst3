@@ -23,7 +23,7 @@ CREATE OR REPLACE PROCEDURE report_ug AS
 
 BEGIN
     for dep in dep_info loop
-        v_dep_info.dname := dep.dname;
+        v_dname.dname := dep.dname;
 
         declare
         V_DNAME VARCHAR2(15) := dname;
@@ -48,9 +48,7 @@ BEGIN
         V_HOURS,
         V_COST,
         V_USER_NAME,
-        V_INSERT_NUMBER
-   );
-
+        V_INSERT_NUMBER);
     end loop;
 END;
 /
