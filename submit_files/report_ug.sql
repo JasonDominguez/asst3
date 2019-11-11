@@ -37,6 +37,7 @@ BEGIN
    for dep in dep_name loop
       c_dep_name.named := dep.named;
 
+
       open dep_num;
       fetch dep_num into c_dep_num;
       close dep_num;
