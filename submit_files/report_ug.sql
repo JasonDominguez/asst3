@@ -26,8 +26,11 @@ Declare
 
     CURSOR emp_totals IS
     select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
-    from project left join (works_on join employee on essn=ssn) on pnumber = pno
-    where dname = v_dname.dname;
+    from project, (select *
+                   from works_on,employee
+                   where essn=ssn)
+    where pnumber=pno and
+          dname = v_dname.dname;
 
     insert_number  NUMBER := 0;
         
@@ -35,15 +38,15 @@ Declare
     BEGIN
     
         cs450.ins_dept_summary(
-        V_DNAME,
-        V_DNUMBER,
-        V_EMP_TYPE,
-        V_PROJ_TYPE,
-        V_NUM_EMPS,
-        V_HOURS,
-        V_COST,
-        V_USER_NAME,
-        V_INSERT_NUMBER
+        v_dname,
+        v_dnumber,
+        'DEPT',
+        'DEPT',
+        v_num_emps,
+        v_emp_totals.tot_hours,
+        v_emp_totals.tot_cost,
+        'HBROW',
+        v_insert_number
         );
     END;
 /
