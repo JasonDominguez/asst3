@@ -92,7 +92,6 @@ BEGIN
             i_num
             );
 
-
    end loop; -- proj_loc
 END;
 /
