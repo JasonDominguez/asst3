@@ -1,55 +1,69 @@
-CREATE OR REPLACE PROCEDURE report_ug AS
-       
-       CURSOR dep_info IS
-       select distinct dname dname, dnumber dnumber
-       from department;
+CREATE OR REPLACE PROCEDURE report_ug AS 
 
-       v_dep_info dept_summary.dep_info%TYPE; 
-       
+    CURSOR dname IS
+    select distinct dname
+    from department;
+    
+    v_dname dname%TYPE;
 
-       CURSOR num_emps IS
-       select count(distinct ssn) num_emps
-       from (employee join department on dno=dnumber) 
-       where dname = v_dep_info.dname;
 
-       v_num_emps dept_summary.num_emps%TYPE; 
-       
+    CURSOR dnumber IS
+    select distinct dnumber
+    from department;
 
-       CURSOR emp_totals IS
-       select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
-       from project left join (works_on join employee on essn=ssn) on pnumber = pno
-       where dname = v_dep_info.dname;
-  
-       v_emp_totals dept_summary.emp_totals%TYPE; 
+    v_dnumber dnumber%TYPE;
+
+
+    CURSOR num_emps IS
+    select count(distinct ssn) num_emps
+    from employee,department
+    where dno=dnumber and
+          dname = v_dname.dname;
+
+    v_num_emps num_emps%TYPE;
+
+
+    CURSOR emp_totals IS
+    select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
+    from project, (select *
+                   from works_on,employee
+                   where essn=ssn)
+    where pnumber=pno and
+          dname = v_dname.dname;
+
+    v_emp_totals emp_totals%TYPE;
+
+    insert_number  NUMBER := 0;
         
 
-       v_insert_number NUMBER := 0;
-
 BEGIN
-    for dep in dep_info loop
-        v_dep_info.dname := dep.dname;
+    for locrec in dname loop
+
+        v_dname.dname := locrec.dname;
+
+        open dnumber;
+        fetch dnumber into v_dnumber;
+        close dnumber;
 
         open num_emps;
         fetch num_emps into v_num_emps;
         close num_emps;
-        
+
         open emp_totals;
         fetch emp_totals into v_emp_totals;
         close emp_totals;
 
 
-        v_insert_number := v_insert_number + 1;
-
         cs450.ins_dept_summary(
-        v_dep_info.dname ,
-        v_dep_info.dnumber ,
-        'DEPT' ,
-        'DEPT' ,
-        v_num_emps.num_emps ,
-        v_emp_totals.tot_hours ,
-        v_emp_totals.tot_cost ,
+        v_dname,
+        v_dnumber,
+        'DEPT',
+        'DEPT',
+        v_num_emps,
+        v_emp_totals.tot_hours,
+        v_emp_totals.tot_cost,
         'HBROW',
-        v_insert_number.insert_number);
+        v_insert_number);
     end loop;
 END;
 /
