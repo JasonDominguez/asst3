@@ -22,33 +22,30 @@ CREATE OR REPLACE PROCEDURE report_ug AS
         
 
 BEGIN
-    for dep in dep_info loop
-        v_dname.dname := dep.dname;
-
-        declare
-        V_DNAME VARCHAR2(15) := dname;
-        V_DNUMBER NUMBER(3)  := dnumber;
-        V_EMP_TYPE VARCHAR2(16):= 'DEPT';
-        V_PROJ_TYPE VARCHAR2(16):= 'NONDEPT';
-        V_NUM_EMPS NUMBER(3) := num_emps;
-        V_HOURS NUMBER(5) := tot_hours;
-        V_COST NUMBER(8,2) := tot_cost;
-        V_USER_NAME VARCHAR2(10) := 'HBROW';
-        V_INSERT_NUMBER NUMBER(4) := insert_number;
+    
+    declare
+    V_DNAME VARCHAR2(15) := dname;
+    V_DNUMBER NUMBER(3)  := dnumber;
+    V_EMP_TYPE VARCHAR2(16):= 'DEPT';
+    V_PROJ_TYPE VARCHAR2(16):= 'NONDEPT';
+    V_NUM_EMPS NUMBER(3) := num_emps;
+    V_HOURS NUMBER(5) := tot_hours;
+    V_COST NUMBER(8,2) := tot_cost;
+    V_USER_NAME VARCHAR2(10) := 'HBROW';
+    V_INSERT_NUMBER NUMBER(4) := insert_number;
 
 
-        v_insert_number := v_insert_number + 1;
+    v_insert_number := v_insert_number + 1;
 
-        cs450.ins_dept_summary(
-        V_DNAME,
-        V_DNUMBER,
-        V_EMP_TYPE,
-        V_PROJ_TYPE,
-        V_NUM_EMPS,
-        V_HOURS,
-        V_COST,
-        V_USER_NAME,
-        V_INSERT_NUMBER);
-    end loop;
+    cs450.ins_dept_summary(
+    V_DNAME,
+    V_DNUMBER,
+    V_EMP_TYPE,
+    V_PROJ_TYPE,
+    V_NUM_EMPS,
+    V_HOURS,
+    V_COST,
+    V_USER_NAME,
+    V_INSERT_NUMBER);
 END;
 /
