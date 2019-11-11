@@ -35,18 +35,18 @@ Declare
     insert_number  NUMBER := 0;
         
 
-    BEGIN
+BEGIN
     
-        cs450.ins_dept_summary(
-        v_dname,
-        v_dnumber,
-        'DEPT',
-        'DEPT',
-        v_num_emps,
-        v_emp_totals.tot_hours,
-        v_emp_totals.tot_cost,
-        'HBROW',
-        v_insert_number
-        );
-    END;
+    cs450.ins_dept_summary(
+    v_dname,
+    v_dnumber,
+    'DEPT',
+    'DEPT',
+    v_num_emps,
+    v_emp_totals.tot_hours,
+    v_emp_totals.tot_cost,
+    'HBROW',
+     v_insert_number
+    );
+END;
 /
