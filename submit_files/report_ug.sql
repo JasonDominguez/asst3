@@ -1,7 +1,7 @@
 CREATE OR REPLACE PROCEDURE report_ug AS
    CURSOR dep_name IS
    select distinct dname
-   from department
+   from department;
 
    c_dep_name  dep_name%rowtype;
 
