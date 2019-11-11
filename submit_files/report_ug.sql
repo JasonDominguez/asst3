@@ -8,7 +8,7 @@ CREATE OR REPLACE PROCEDURE report_ug(
     v_cost dept_summary.cost%TYPE, 
     v_user_name dept_summary.user_name%TYPE, 
     v_insert_number dept_summary.insert_number%TYPE);
-       
+     declare  
        CURSOR dname IS
        select distinct dname
        from department;
