@@ -1,6 +1,6 @@
 CREATE OR REPLACE PROCEDURE report_ug AS
    CURSOR dep_name IS
-   select distinct dname
+   select distinct dname named
    from department;
 
    c_dep_name  dep_name%rowtype;
@@ -9,7 +9,7 @@ CREATE OR REPLACE PROCEDURE report_ug AS
    CURSOR dep_num IS
    select distinct dnumber
    from department
-   where dname = c_dep_name.dname;
+   where dname = c_dep_name.named;
 
    c_dep_num dep_num%rowtype;
 
@@ -18,7 +18,7 @@ CREATE OR REPLACE PROCEDURE report_ug AS
    select count(distinct ssn) e_num
    from (employee join works_on on ssn=essn) 
          right join project on pno=pnumber
-   where dname = c_dep_name.dname;
+   where dname = c_dep_name.named;
 
    c_e_num e_num%rowtype;
 
@@ -26,7 +26,7 @@ CREATE OR REPLACE PROCEDURE report_ug AS
    CURSOR emp_totals IS
    select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
    from project left join (works_on join employee on essn=ssn) on pnumber = pno
-   where dname = c_dep_name.dname;
+   where dname = c_dep_name.named;
 
    c_emp_totals emp_totals%rowtype;
 
@@ -35,7 +35,7 @@ CREATE OR REPLACE PROCEDURE report_ug AS
 
 BEGIN
    for dep in dep_name loop
-      c_dep_name.dname := dep.dname;
+      c_dep_name.named := dep.named;
 
 
       open dep_num;
