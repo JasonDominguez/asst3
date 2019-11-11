@@ -48,5 +48,5 @@ BEGIN
     'HBROW',
      v_insert_number
     );
-END;
+END report_ug;
 /
