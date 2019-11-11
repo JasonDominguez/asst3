@@ -10,7 +10,7 @@ CREATE OR REPLACE PROCEDURE ins_dept_summary(
        CURSOR emp_type IS
        select ssn as 'DEPT'
        from employee, department, project, works_on
-       where department.dname = 
+       where department.dname = p_dep_infp.dname
        and department.dnumber = employee.dno
        and employee.ssn = works_on.essn
        and works_on.pno = project.pnumber
@@ -23,7 +23,7 @@ CREATE OR REPLACE PROCEDURE ins_dept_summary(
        CURSOR proj_type IS
        select ssn as 'DEPT'
        from EMPLOYEE, DEPARTMENT, PROJECT, WORKS_ON
-       where department.dname = '$dep'
+       where department.dname = p_dep_info.dname
        and department.dnumber = employee.dno
        and employee.ssn = works_on.essn
        and works_on.pno = project.pnumber
