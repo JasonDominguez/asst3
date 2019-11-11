@@ -1,5 +1,4 @@
 CREATE OR REPLACE PROCEDURE report_ug AS
-declare
     v_dname dept_summary.dname%TYPE, 
     v_dnumber dept_summary.dnumber%TYPE, 
     v_emp_type dept_summary.emp_type%TYPE, 
@@ -20,7 +19,7 @@ declare
     
        CURSOR num_emps IS
        select count(distinct ssn) num_emps
-       from employee join department on dno=dnumber 
+       from employee join (department) on dno=dnumber 
        where dname = v_dep_info.dname;      
 
        CURSOR emp_totals IS
