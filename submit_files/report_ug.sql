@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE ins_dept_summary(
+CREATE OR REPLACE PROCEDURE report_ug AS
        
        CURSOR dep_info IS
        select distinct dname dname, dnumber dnumber
@@ -49,8 +49,7 @@ CREATE OR REPLACE PROCEDURE ins_dept_summary(
        p_emp_totals dept_summary.emp_totals%TYPE, 
         
 
-       
-       p_insert_number NUMBER := 0);
+       p_insert_number NUMBER := 0;
 
 BEGIN
     for dep in dep_info loop
