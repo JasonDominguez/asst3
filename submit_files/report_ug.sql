@@ -7,7 +7,7 @@ CREATE OR REPLACE PROCEDURE report_ug(
     v_hours dept_summary.hours%TYPE, 
     v_cost dept_summary.cost%TYPE, 
     v_user_name dept_summary.user_name%TYPE, 
-    v_insert_number dept_summary.insert_number%TYPE);
+    v_insert_number dept_summary.insert_number%TYPE) AS
 
     CURSOR dname IS
     select distinct dname
