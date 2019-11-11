@@ -1,4 +1,14 @@
-CREATE OR REPLACE PROCEDURE report_ug AS
+CREATE OR REPLACE PROCEDURE report_ug(
+    V_DNAME VARCHAR2(15) := dname;
+    V_DNUMBER NUMBER(3)  := dnumber;
+    V_EMP_TYPE VARCHAR2(16):= 'DEPT';
+    V_PROJ_TYPE VARCHAR2(16):= 'NONDEPT';
+    V_NUM_EMPS NUMBER(3) := num_emps;
+    V_HOURS NUMBER(5) := tot_hours;
+    V_COST NUMBER(8,2) := tot_cost;
+    V_USER_NAME VARCHAR2(10) := 'HBROW';
+    V_INSERT_NUMBER NUMBER(4) := insert_number;
+) AS
        
        CURSOR dname IS
        select distinct dname
@@ -23,18 +33,6 @@ CREATE OR REPLACE PROCEDURE report_ug AS
 
 BEGIN
     
-    declare
-    V_DNAME VARCHAR2(15) := dname;
-    V_DNUMBER NUMBER(3)  := dnumber;
-    V_EMP_TYPE VARCHAR2(16):= 'DEPT';
-    V_PROJ_TYPE VARCHAR2(16):= 'NONDEPT';
-    V_NUM_EMPS NUMBER(3) := num_emps;
-    V_HOURS NUMBER(5) := tot_hours;
-    V_COST NUMBER(8,2) := tot_cost;
-    V_USER_NAME VARCHAR2(10) := 'HBROW';
-    V_INSERT_NUMBER NUMBER(4) := insert_number;
-
-
     cs450.ins_dept_summary(
     V_DNAME,
     V_DNUMBER,
