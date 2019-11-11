@@ -35,8 +35,6 @@ BEGIN
     V_INSERT_NUMBER NUMBER(4) := insert_number;
 
 
-    v_insert_number := v_insert_number + 1;
-
     cs450.ins_dept_summary(
     V_DNAME,
     V_DNUMBER,
@@ -46,6 +44,7 @@ BEGIN
     V_HOURS,
     V_COST,
     V_USER_NAME,
-    V_INSERT_NUMBER);
+    V_INSERT_NUMBER
+    );
 END;
 /
