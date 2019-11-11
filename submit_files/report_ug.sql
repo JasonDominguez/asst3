@@ -34,8 +34,8 @@ CREATE OR REPLACE PROCEDURE report_ug AS
    i_num  NUMBER := 0; -- insert_number
 
 BEGIN
-   for locrec in dep_name loop
-      c_dep_name.dname := locrec.dname;
+   for dep in dep_name loop
+      c_dep_name.dname := dep.dname;
 
 
       open dep_num;
@@ -53,12 +53,12 @@ BEGIN
 
       i_num := i_num + 1;
 
-      CS450.ins_dept_summary(
+      cs450.ins_dept_summary(
             c_dep_name.dname,
             c_dep_num.dnumber,
             'DEPT',
             'DEPT',
-            locrec.e_num, -- calculated by the outer cursor
+            dep.e_num, -- calculated by the outer cursor
             c_emp_totals.tot_hours,
             c_emp_totals.tot_cost,
             'HBROW',
