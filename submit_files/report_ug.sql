@@ -1,5 +1,5 @@
-CREATE OR REPLACE PROCEDURE report_ug AS
-    (v_dname dept_summary.dname%TYPE, 
+CREATE OR REPLACE PROCEDURE report_ug(
+    v_dname dept_summary.dname%TYPE, 
     v_dnumber dept_summary.dnumber%TYPE, 
     v_emp_type dept_summary.emp_type%TYPE, 
     v_proj_type dept_summary.proj_type%TYPE, 
@@ -8,26 +8,26 @@ CREATE OR REPLACE PROCEDURE report_ug AS
     v_cost dept_summary.cost%TYPE, 
     v_user_name dept_summary.user_name%TYPE, 
     v_insert_number dept_summary.insert_number%TYPE);
-     declare  
-       CURSOR dname IS
-       select distinct dname
-       from department;
 
-       CURSOR dnumber IS
-       select distinct dnumber
-       from department;
+    CURSOR dname IS
+    select distinct dname
+    from department;
+
+    CURSOR dnumber IS
+    select distinct dnumber
+    from department;
     
-       CURSOR num_emps IS
-       select count(distinct ssn) num_emps
-       from employee join department on dno=dnumber 
-       where dname = v_dname.dname;      
+    CURSOR num_emps IS
+    select count(distinct ssn) num_emps
+    from employee join department on dno=dnumber 
+    where dname = v_dname.dname;      
 
-       CURSOR emp_totals IS
-       select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
-       from project left join (works_on join employee on essn=ssn) on pnumber = pno
-       where dname = v_dname.dname;
+    CURSOR emp_totals IS
+    select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
+    from project left join (works_on join employee on essn=ssn) on pnumber = pno
+    where dname = v_dname.dname;
 
-       insert_number  NUMBER := 0;
+    insert_number  NUMBER := 0;
         
 
 BEGIN
