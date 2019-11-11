@@ -53,18 +53,38 @@ CREATE OR REPLACE PROCEDURE ins_dept_summary(
        p_insert_number NUMBER := 0);
 
 BEGIN
+    for dep in dep_info loop
+        p_dep_info.dname := dep.dname;
 
-    p_insert_number := p_insert_number + 1;
+        open emp_type;
+        fetch emp_type into p_emp_type;
+        close emp_type;
 
-    cs450.ins_dept_summary(
-       p_dep_info.dname ,
-       p_dep_info.dnumber ,
-       p_emp_type.emp_type ,
-       p_proj_type.proj_type ,
-       p_num_emps.num_emps ,
-       p_emp_totals.tot_hours ,
-       p_emp_totals.tot_cost ,
-       'HBROW',
-       p_insert_number.insert_number);
+        open proj_type;
+        fetch proj_type into p_proj_type;
+        close proj_type;
+
+        open num_emps;
+        fetch num_emps into p_num_emps;
+        close num_emps;
+        
+        open emp_totals;
+        fetch emp_totals into p_emp_totals;
+        close emp_totals;
+
+
+        p_insert_number := p_insert_number + 1;
+
+        cs450.ins_dept_summary(
+        p_dep_info.dname ,
+        p_dep_info.dnumber ,
+        p_emp_type.emp_type ,
+        p_proj_type.proj_type ,
+        p_num_emps.num_emps ,
+        p_emp_totals.tot_hours ,
+        p_emp_totals.tot_cost ,
+        'HBROW',
+        p_insert_number.insert_number);
+    end loop;
 END;
 /
