@@ -4,14 +4,14 @@ CREATE OR REPLACE PROCEDURE report_ug AS
     select distinct dname
     from department;
     
-    v_dname dept_summary.dname%TYPE;
+    v_dname dname%TYPE;
 
 
     CURSOR dnumber IS
     select distinct dnumber
     from department;
 
-    v_dnumber dept_summary.dnumber%TYPE;
+    v_dnumber dnumber%TYPE;
 
 
     CURSOR num_emps IS
@@ -20,7 +20,7 @@ CREATE OR REPLACE PROCEDURE report_ug AS
     where dno=dnumber and
           dname = v_dname.dname;
 
-    v_num_emps dept_summary.num_emps%TYPE;
+    v_num_emps num_emps%TYPE;
 
 
     CURSOR emp_totals IS
@@ -31,7 +31,7 @@ CREATE OR REPLACE PROCEDURE report_ug AS
     where pnumber=pno and
           dname = v_dname.dname;
 
-    v_emp_totals dept_summary.emp_totals%TYPE;
+    v_emp_totals emp_totals%TYPE;
 
     insert_number  NUMBER := 0;
         
