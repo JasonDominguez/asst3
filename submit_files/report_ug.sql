@@ -46,7 +46,6 @@ BEGIN
     v_emp_totals.tot_hours,
     v_emp_totals.tot_cost,
     'HBROW',
-     v_insert_number
-    );
+     v_insert_number);
 END report_ug;
 /
