@@ -1,13 +1,14 @@
-CREATE OR REPLACE PROCEDURE report_ug(
-    v_dname report_ug.dname%TYPE, 
-    v_dnumber report_ug.dnumber%TYPE, 
-    v_emp_type report_ug.emp_type%TYPE, 
-    v_proj_type report_ug.proj_type%TYPE, 
-    v_num_emps report_ug.num_emps%TYPE, 
-    v_hours report_ug.hours%TYPE, 
-    v_cost report_ug.cost%TYPE, 
-    v_user_name report_ug.user_name%TYPE, 
-    v_insert_number dreport_ug.insert_number%TYPE) AS
+CREATE OR REPLACE PROCEDURE report_ug AS
+Declare 
+    v_dname dept_summary.dname%TYPE, 
+    v_dnumber dept_summary.dnumber%TYPE, 
+    v_emp_type dept_summary.emp_type%TYPE, 
+    v_proj_type dept_summary.proj_type%TYPE, 
+    v_num_emps dept_summary.num_emps%TYPE, 
+    v_hours dept_summary.hours%TYPE, 
+    v_cost dept_summary.cost%TYPE, 
+    v_user_name dept_summary.user_name%TYPE, 
+    v_insert_number dept_summary.insert_number%TYPE;
 
     CURSOR dname IS
     select distinct dname
@@ -30,18 +31,18 @@ CREATE OR REPLACE PROCEDURE report_ug(
     insert_number  NUMBER := 0;
         
 
-BEGIN
+    BEGIN
     
-    cs450.ins_dept_summary(
-    V_DNAME,
-    V_DNUMBER,
-    V_EMP_TYPE,
-    V_PROJ_TYPE,
-    V_NUM_EMPS,
-    V_HOURS,
-    V_COST,
-    V_USER_NAME,
-    V_INSERT_NUMBER
-    );
-END;
+        cs450.ins_dept_summary(
+        V_DNAME,
+        V_DNUMBER,
+        V_EMP_TYPE,
+        V_PROJ_TYPE,
+        V_NUM_EMPS,
+        V_HOURS,
+        V_COST,
+        V_USER_NAME,
+        V_INSERT_NUMBER
+        );
+    END;
 /
