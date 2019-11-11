@@ -38,11 +38,7 @@ if (! isset($_POST['user_name'] , $_POST['password'] ,$_POST['sid'])
 // the following line and replace XXXXXXXX with your
 // ORACLE ID:
 //
-<<<<<<< HEAD
-$uid = 'JDOMINGU';
-=======
   $uid = 'JDOMINGU';
->>>>>>> 8cf4354e1288bfef97dc69e401f563be36448434
 //
 // DO NOT make this change until you are ready to submit
 // this code.  The insert and clean procedures will not work
