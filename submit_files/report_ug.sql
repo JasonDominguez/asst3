@@ -20,8 +20,9 @@ Declare
     
     CURSOR num_emps IS
     select count(distinct ssn) num_emps
-    from employee join department on dno=dnumber 
-    where dname = v_dname.dname;      
+    from employee,department
+    where dno=dnumber and
+          dname = v_dname.dname;      
 
     CURSOR emp_totals IS
     select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
