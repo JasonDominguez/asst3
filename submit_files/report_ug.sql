@@ -1,55 +1,56 @@
 CREATE OR REPLACE PROCEDURE report_ug AS
        
-       CURSOR dep_info IS
-       select distinct dname dname, dnumber dnumber
+       CURSOR dname IS
+       select distinct dname
        from department;
 
-       v_dep_info dept_summary.dep_info%TYPE; 
-       
-
+       CURSOR dnumber IS
+       select distinct dnumber
+       from department;
+    
        CURSOR num_emps IS
        select count(distinct ssn) num_emps
        from (employee join department on dno=dnumber) 
-       where dname = v_dep_info.dname;
-
-       v_num_emps dept_summary.num_emps%TYPE; 
-       
+       where dname = v_dep_info.dname;      
 
        CURSOR emp_totals IS
        select nvl(sum(hours),0) tot_hours, nvl(sum(hours*salary/2000),0) tot_cost
        from project left join (works_on join employee on essn=ssn) on pnumber = pno
        where dname = v_dep_info.dname;
-  
-       v_emp_totals dept_summary.emp_totals%TYPE; 
-        
 
-       v_insert_number NUMBER := 0;
+       insert_number  NUMBER := 0;
+        
 
 BEGIN
     for dep in dep_info loop
         v_dep_info.dname := dep.dname;
 
-        open num_emps;
-        fetch num_emps into v_num_emps;
-        close num_emps;
-        
-        open emp_totals;
-        fetch emp_totals into v_emp_totals;
-        close emp_totals;
+        declare
+        V_DNAME VARCHAR2(15) := dname;
+        V_DNUMBER NUMBER(3)  := dnumber;
+        V_EMP_TYPE VARCHAR2(16):= 'DEPT';
+        V_PROJ_TYPE VARCHAR2(16):= 'NONDEPT';
+        V_NUM_EMPS NUMBER(3) := num_emps;
+        V_HOURS NUMBER(5) := tot_hours;
+        V_COST NUMBER(8,2) := tot_cost;
+        V_USER_NAME VARCHAR2(10) := 'HBROW';
+        V_INSERT_NUMBER NUMBER(4) := insert_number;
 
 
         v_insert_number := v_insert_number + 1;
 
         cs450.ins_dept_summary(
-        v_dep_info.dname ,
-        v_dep_info.dnumber ,
-        'DEPT' ,
-        'DEPT' ,
-        v_num_emps.num_emps ,
-        v_emp_totals.tot_hours ,
-        v_emp_totals.tot_cost ,
-        'HBROW',
-        v_insert_number.insert_number);
+        V_DNAME,
+        V_DNUMBER,
+        V_EMP_TYPE,
+        V_PROJ_TYPE,
+        V_NUM_EMPS,
+        V_HOURS,
+        V_COST,
+        V_USER_NAME,
+        V_INSERT_NUMBER
+   );
+
     end loop;
 END;
 /
