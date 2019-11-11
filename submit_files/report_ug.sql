@@ -1,13 +1,13 @@
 CREATE OR REPLACE PROCEDURE report_ug(
-    V_DNAME VARCHAR2(15) := dname;
-    V_DNUMBER NUMBER(3)  := dnumber;
-    V_EMP_TYPE VARCHAR2(16):= 'DEPT';
-    V_PROJ_TYPE VARCHAR2(16):= 'NONDEPT';
-    V_NUM_EMPS NUMBER(3) := num_emps;
-    V_HOURS NUMBER(5) := tot_hours;
-    V_COST NUMBER(8,2) := tot_cost;
-    V_USER_NAME VARCHAR2(10) := 'HBROW';
-    V_INSERT_NUMBER NUMBER(4) := insert_number;
+    v_dname dept_summary.dname%TYPE, 
+    v_dnumber dept_summary.dnumber%TYPE, 
+    v_emp_type dept_summary.emp_type%TYPE, 
+    v_proj_type dept_summary.proj_type%TYPE, 
+    v_num_emps dept_summary.num_emps%TYPE, 
+    v_hours dept_summary.hours%TYPE, 
+    v_cost dept_summary.cost%TYPE, 
+    v_user_name dept_summary.user_name%TYPE, 
+    v_insert_number dept_summary.insert_number%TYPE;
 ) AS
        
        CURSOR dname IS
