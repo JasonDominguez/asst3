@@ -1,4 +1,5 @@
-CREATE OR REPLACE PROCEDURE report_ug(
+CREATE OR REPLACE PROCEDURE report_ug AS
+declare
     v_dname dept_summary.dname%TYPE, 
     v_dnumber dept_summary.dnumber%TYPE, 
     v_emp_type dept_summary.emp_type%TYPE, 
@@ -7,7 +8,7 @@ CREATE OR REPLACE PROCEDURE report_ug(
     v_hours dept_summary.hours%TYPE, 
     v_cost dept_summary.cost%TYPE, 
     v_user_name dept_summary.user_name%TYPE, 
-    v_insert_number dept_summary.insert_number%TYPE);
+    v_insert_number dept_summary.insert_number%TYPE;
      declare  
        CURSOR dname IS
        select distinct dname
